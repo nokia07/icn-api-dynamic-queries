@@ -37,3 +37,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Certificado HTTPS de desarrollo (perfil local) ###
+src/main/resources/localhost.p12
