@@ -34,9 +34,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final String INVALID_REQUEST = "La solicitud contiene datos inválidos";
 
-    @ExceptionHandler(ProjectNotFoundException.class)
-    public ResponseEntity<Object> handleNotFound(ProjectNotFoundException ex, WebRequest request) {
+    @ExceptionHandler({ProjectNotFoundException.class, QueryNotFoundException.class,
+            ProjectQueryNotFoundException.class})
+    public ResponseEntity<Object> handleNotFound(RuntimeException ex, WebRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
+    }
+
+    @ExceptionHandler({DuplicateProjectQueryException.class, ResourceInUseException.class})
+    public ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

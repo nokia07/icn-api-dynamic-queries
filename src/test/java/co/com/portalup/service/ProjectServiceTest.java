@@ -13,6 +13,8 @@ import co.com.portalup.dto.UpdateProjectRequest;
 import co.com.portalup.entity.ProjectEntity;
 import co.com.portalup.entity.ProjectStatus;
 import co.com.portalup.exception.ProjectNotFoundException;
+import co.com.portalup.exception.ResourceInUseException;
+import co.com.portalup.repository.ProjectQueryRepository;
 import co.com.portalup.repository.ProjectRepository;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -34,6 +36,9 @@ class ProjectServiceTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private ProjectQueryRepository projectQueryRepository;
 
     @InjectMocks
     private ProjectService projectService;
@@ -162,6 +167,18 @@ class ProjectServiceTest {
         projectService.delete(1L);
 
         verify(projectRepository).delete(existing);
+    }
+
+    @Test
+    void deleteThrowsWhenProjectHasAssociations() {
+        ProjectEntity existing = project(1L, "Con asociaciones", ProjectStatus.ACTIVE);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(projectQueryRepository.existsByProjectId(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> projectService.delete(1L))
+                .isInstanceOf(ResourceInUseException.class)
+                .hasMessage("No se puede eliminar el proyecto con id 1 porque tiene consultas asociadas");
+        verify(projectRepository, never()).delete(any());
     }
 
     @Test

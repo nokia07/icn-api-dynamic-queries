@@ -20,6 +20,7 @@ import co.com.portalup.dto.ProjectResponse;
 import co.com.portalup.dto.UpdateProjectRequest;
 import co.com.portalup.entity.ProjectStatus;
 import co.com.portalup.exception.ProjectNotFoundException;
+import co.com.portalup.exception.ResourceInUseException;
 import co.com.portalup.service.ProjectService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -254,6 +255,16 @@ class ProjectControllerTest {
         mockMvc.perform(delete(BASE_URL + "/1"))
                 .andExpect(status().isNoContent());
         verify(projectService).delete(1L);
+    }
+
+    @Test
+    void deleteReturns409WhenProjectHasAssociations() throws Exception {
+        doThrow(new ResourceInUseException("No se puede eliminar el proyecto con id 1 porque tiene consultas asociadas")).when(projectService).delete(1L);
+
+        mockMvc.perform(delete(BASE_URL + "/1"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("No se puede eliminar el proyecto con id 1 porque tiene consultas asociadas"));
     }
 
     @Test
