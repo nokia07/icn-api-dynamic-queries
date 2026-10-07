@@ -1,6 +1,8 @@
 package co.com.portalup.service;
 
+import co.com.portalup.dto.ComposedQueryResponse;
 import co.com.portalup.dto.CreateProjectQueryRequest;
+import co.com.portalup.dto.ProjectComposeResponse;
 import co.com.portalup.dto.ProjectQueryResponse;
 import co.com.portalup.dto.UpdateProjectQueryRequest;
 import co.com.portalup.entity.ProjectQueryEntity;
@@ -10,9 +12,13 @@ import co.com.portalup.exception.ProjectNotFoundException;
 import co.com.portalup.exception.ProjectQueryNotFoundException;
 import co.com.portalup.exception.QueryNotFoundException;
 import co.com.portalup.repository.ProjectQueryRepository;
+import co.com.portalup.repository.ProjectQueryRow;
 import co.com.portalup.repository.ProjectRepository;
 import co.com.portalup.repository.QueryRepository;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +59,20 @@ public class ProjectQueryService {
         return projectQueryRepository.search(projectId, queryId, status).stream()
                 .map(ProjectQueryResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Agrupa las asociaciones por proyecto. Solo aparecen los proyectos con al menos una consulta
+     * asociada; el orden (proyecto y luego asociación) lo da la consulta del repositorio.
+     */
+    public List<ProjectComposeResponse> findAllComposed() {
+        Map<Long, ProjectComposeResponse> projects = new LinkedHashMap<>();
+        for (ProjectQueryRow row : projectQueryRepository.findAllComposed()) {
+            projects.computeIfAbsent(row.getProject().getId(), id -> ProjectComposeResponse.from(row.getProject()))
+                    .getQueries()
+                    .add(ComposedQueryResponse.from(row));
+        }
+        return new ArrayList<>(projects.values());
     }
 
     /**

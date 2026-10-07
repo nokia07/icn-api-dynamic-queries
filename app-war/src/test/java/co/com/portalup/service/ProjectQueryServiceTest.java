@@ -7,16 +7,23 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import co.com.portalup.dto.ComposedQueryResponse;
 import co.com.portalup.dto.CreateProjectQueryRequest;
+import co.com.portalup.dto.ProjectComposeResponse;
 import co.com.portalup.dto.ProjectQueryResponse;
 import co.com.portalup.dto.UpdateProjectQueryRequest;
+import co.com.portalup.entity.ProjectEntity;
 import co.com.portalup.entity.ProjectQueryEntity;
 import co.com.portalup.entity.ProjectQueryStatus;
+import co.com.portalup.entity.ProjectStatus;
+import co.com.portalup.entity.QueryEntity;
+import co.com.portalup.entity.QueryStatus;
 import co.com.portalup.exception.DuplicateProjectQueryException;
 import co.com.portalup.exception.ProjectNotFoundException;
 import co.com.portalup.exception.ProjectQueryNotFoundException;
 import co.com.portalup.exception.QueryNotFoundException;
 import co.com.portalup.repository.ProjectQueryRepository;
+import co.com.portalup.repository.ProjectQueryRow;
 import co.com.portalup.repository.ProjectRepository;
 import co.com.portalup.repository.QueryRepository;
 import java.time.LocalDateTime;
@@ -165,6 +172,43 @@ class ProjectQueryServiceTest {
     }
 
     @Test
+    void findAllComposedGroupsQueriesByProjectKeepingOrder() {
+        ProjectEntity first = projectEntity(10L, "Primero");
+        ProjectEntity second = projectEntity(11L, "Segundo");
+        QueryEntity queryA = queryEntity(20L, "Consulta A");
+        QueryEntity queryB = queryEntity(21L, "Consulta B");
+        when(projectQueryRepository.findAllComposed()).thenReturn(Arrays.asList(
+                new ProjectQueryRow(projectQuery(1L, 10L, 20L, ProjectQueryStatus.ACTIVE), first, queryA),
+                new ProjectQueryRow(projectQuery(2L, 10L, 21L, ProjectQueryStatus.INACTIVE), first, queryB),
+                new ProjectQueryRow(projectQuery(3L, 11L, 20L, ProjectQueryStatus.ACTIVE), second, queryA)));
+
+        List<ProjectComposeResponse> response = projectQueryService.findAllComposed();
+
+        assertThat(response).extracting(ProjectComposeResponse::getId).containsExactly(10L, 11L);
+        assertThat(response.get(0).getName()).isEqualTo("Primero");
+        assertThat(response.get(0).getDescription()).isEqualTo("Descripción de Primero");
+        assertThat(response.get(0).getQueries()).extracting(ComposedQueryResponse::getId).containsExactly(20L, 21L);
+        assertThat(response.get(1).getQueries()).extracting(ComposedQueryResponse::getProjectQueryId)
+                .containsExactly(3L);
+
+        ComposedQueryResponse composed = response.get(0).getQueries().get(1);
+        assertThat(composed.getName()).isEqualTo("Consulta B");
+        assertThat(composed.getCesql()).isEqualTo("SELECT d.Id FROM Document d");
+        assertThat(composed.getConfig()).isEqualTo("{\"query\":true}");
+        assertThat(composed.getStatus()).isEqualTo(QueryStatus.ACTIVE);
+        assertThat(composed.getProjectQueryId()).isEqualTo(2L);
+        assertThat(composed.getProjectQueryConfig()).isEqualTo(CONFIG);
+        assertThat(composed.getProjectQueryStatus()).isEqualTo(ProjectQueryStatus.INACTIVE);
+    }
+
+    @Test
+    void findAllComposedWithoutAssociationsReturnsEmptyList() {
+        when(projectQueryRepository.findAllComposed()).thenReturn(Collections.emptyList());
+
+        assertThat(projectQueryService.findAllComposed()).isEmpty();
+    }
+
+    @Test
     void updateChangesFieldsAndStatusKeepingIdAndCreatedAt() {
         ProjectQueryEntity existing = projectQuery(1L, 10L, 20L, ProjectQueryStatus.ACTIVE);
         when(projectQueryRepository.findById(1L)).thenReturn(Optional.of(existing));
@@ -289,6 +333,27 @@ class ProjectQueryServiceTest {
         entity.setQueryId(queryId);
         entity.setConfig(CONFIG);
         entity.setStatus(status);
+        ReflectionTestUtils.setField(entity, "id", id);
+        ReflectionTestUtils.setField(entity, "createdAt", CREATED_AT);
+        return entity;
+    }
+
+    private static ProjectEntity projectEntity(Long id, String name) {
+        ProjectEntity entity = new ProjectEntity();
+        entity.setName(name);
+        entity.setDescription("Descripción de " + name);
+        entity.setStatus(ProjectStatus.ACTIVE);
+        ReflectionTestUtils.setField(entity, "id", id);
+        ReflectionTestUtils.setField(entity, "createdAt", CREATED_AT);
+        return entity;
+    }
+
+    private static QueryEntity queryEntity(Long id, String name) {
+        QueryEntity entity = new QueryEntity();
+        entity.setName(name);
+        entity.setCesql("SELECT d.Id FROM Document d");
+        entity.setConfig("{\"query\":true}");
+        entity.setStatus(QueryStatus.ACTIVE);
         ReflectionTestUtils.setField(entity, "id", id);
         ReflectionTestUtils.setField(entity, "createdAt", CREATED_AT);
         return entity;

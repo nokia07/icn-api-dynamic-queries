@@ -25,4 +25,14 @@ public interface ProjectQueryRepository extends JpaRepository<ProjectQueryEntity
     List<ProjectQueryEntity> search(@Param("projectId") Long projectId,
                                     @Param("queryId") Long queryId,
                                     @Param("status") ProjectQueryStatus status);
+
+    /**
+     * Trae en una sola consulta cada asociación con su proyecto y su consulta, ordenadas por proyecto
+     * y luego por asociación, para que el servicio agrupe sin consultas adicionales por proyecto.
+     */
+    @Query("SELECT new co.com.portalup.repository.ProjectQueryRow(pq, p, q)"
+            + " FROM ProjectQueryEntity pq, ProjectEntity p, QueryEntity q"
+            + " WHERE p.id = pq.projectId AND q.id = pq.queryId"
+            + " ORDER BY p.id, pq.id")
+    List<ProjectQueryRow> findAllComposed();
 }
