@@ -1,0 +1,47 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>co.com.portalup</groupId>
+    <artifactId>icn-api-dynamic-queries</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>icn-api-dynamic-queries-ear</artifactId>
+  <packaging>ear</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>co.com.portalup</groupId>
+      <artifactId>icn-api-dynamic-queries-war</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>icn-api-dynamic-queries</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <!-- Java EE 7: la versión que soporta WebSphere 9 -->
+          <version>7</version>
+          <displayName>icn-api-dynamic-queries</displayName>
+          <modules>
+            <webModule>
+              <groupId>co.com.portalup</groupId>
+              <artifactId>icn-api-dynamic-queries-war</artifactId>
+              <bundleFileName>icn-api-dynamic-queries.war</bundleFileName>
+              <contextRoot>/icn-api-dynamic-queries</contextRoot>
+            </webModule>
+          </modules>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
