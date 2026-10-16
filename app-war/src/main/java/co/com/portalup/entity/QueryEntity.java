@@ -8,6 +8,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -28,10 +29,11 @@ public class QueryEntity {
     @Column(name = "qry_name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "qry_cesql", nullable = false, length = 512)
+    @Column(name = "qry_cesql", nullable = false, length = 4000)
     private String cesql;
 
-    @Column(name = "qry_config", nullable = false, length = 1024)
+    @Lob
+    @Column(name = "qry_config", nullable = false)
     private String config;
 
     @Enumerated(EnumType.STRING)

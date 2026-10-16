@@ -119,22 +119,12 @@ class QueryControllerTest {
     }
 
     @Test
-    void createWithCesqlLongerThan512Returns400() throws Exception {
+    void createWithCesqlLongerThan4000Returns400() throws Exception {
         mockMvc.perform(post(BASE_URL).contentType(MediaType.APPLICATION_JSON)
-                        .content(body("Consulta", repeat(513), CONFIG, null)))
+                        .content(body("Consulta", repeat(4001), CONFIG, null)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details[0]")
-                        .value("cesql: La sentencia CE SQL de la consulta no puede superar los 512 caracteres"));
-        verifyNoInteractions(queryService);
-    }
-
-    @Test
-    void createWithConfigLongerThan1024Returns400() throws Exception {
-        mockMvc.perform(post(BASE_URL).contentType(MediaType.APPLICATION_JSON)
-                        .content(body("Consulta", CESQL, repeat(1025), null)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.details[0]")
-                        .value("config: La configuración de la consulta no puede superar los 1024 caracteres"));
+                        .value("cesql: La sentencia CE SQL de la consulta no puede superar los 4000 caracteres"));
         verifyNoInteractions(queryService);
     }
 

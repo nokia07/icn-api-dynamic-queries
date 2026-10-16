@@ -11,11 +11,10 @@ public class CreateQueryRequest {
     private String name;
 
     @NotBlank(message = "La sentencia CE SQL de la consulta es obligatoria")
-    @Size(max = 512, message = "La sentencia CE SQL de la consulta no puede superar los 512 caracteres")
+    @Size(max = 4000, message = "La sentencia CE SQL de la consulta no puede superar los 4000 caracteres")
     private String cesql;
 
     @NotBlank(message = "La configuración de la consulta es obligatoria")
-    @Size(max = 1024, message = "La configuración de la consulta no puede superar los 1024 caracteres")
     private String config;
 
     private QueryStatus status;
