@@ -45,6 +45,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
     }
 
+    @ExceptionHandler(DesignerAccessDeniedException.class)
+    public ResponseEntity<Object> handleDesignerAccessDenied(DesignerAccessDeniedException ex, WebRequest request) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request, null);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
         List<String> details = ex.getConstraintViolations().stream()

@@ -11,9 +11,11 @@ import co.com.portalup.entity.ProjectQueryStatus;
 import co.com.portalup.entity.ProjectStatus;
 import co.com.portalup.entity.QueryStatus;
 import co.com.portalup.service.ProjectQueryService;
+import co.com.portalup.security.DesignerAccessService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,6 +33,15 @@ class ProjectQueryComposeControllerTest {
 
     @MockBean
     private ProjectQueryService projectQueryService;
+
+    // DesignerAccessConfig: las escrituras exigen un grupo del diseñador; aquí el usuario lo tiene.
+    @MockBean
+    private DesignerAccessService designerAccessService;
+
+    @BeforeEach
+    void allowDesigner() throws Exception {
+        when(designerAccessService.canDesign()).thenReturn(true);
+    }
 
     @Test
     void findAllReturnsProjectsWithTheirQueries() throws Exception {

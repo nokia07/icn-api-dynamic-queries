@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Autenticación de la API con la del contenedor (WebSphere). En WebSphere ICN y la API comparten host y puerto, así que
+  el navegador envía la cookie de sesión LTPA (LtpaToken2) que obtuvo al entrar a ICN: el usuario ya está autenticado.
+  Toda /api/* exige el rol DQUser, que ibm-application-bnd.xml del EAR asigna a todos los usuarios autenticados.
+  Quién puede escribir (crear, modificar, eliminar) no se decide aquí sino en DesignerAccessInterceptor, con los grupos
+  de la tabla tbl_icn_designer_groups.
+  /api/v1/ping queda abierto (prueba de vida). OPTIONS no se restringe: en WebSphere no hay CORS y Spring lo responde.
+  Spring Boot embebido (perfil local, spring-boot:run) no lee este archivo: en local la API queda abierta.
+  metadata-complete="false": WebSphere sigue ejecutando el SpringBootServletInitializer.
+-->
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1"
+         metadata-complete="false">
+
+    <display-name>icn-api-dynamic-queries</display-name>
+
+    <security-constraint>
+        <display-name>Ping</display-name>
+        <web-resource-collection>
+            <web-resource-name>ping</web-resource-name>
+            <url-pattern>/api/v1/ping</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+
+    <security-constraint>
+        <display-name>API</display-name>
+        <web-resource-collection>
+            <web-resource-name>api</web-resource-name>
+            <url-pattern>/api/*</url-pattern>
+            <http-method-omission>OPTIONS</http-method-omission>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>DQUser</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <!-- Sin cookie LTPA válida (sesión de ICN vencida o llamada directa) WebSphere responde 401 con un desafío BASIC. -->
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>icn-api-dynamic-queries</realm-name>
+    </login-config>
+
+    <security-role>
+        <description>Usuarios autenticados (los de ICN).</description>
+        <role-name>DQUser</role-name>
+    </security-role>
+</web-app>

@@ -22,9 +22,11 @@ import co.com.portalup.entity.QueryStatus;
 import co.com.portalup.exception.QueryNotFoundException;
 import co.com.portalup.exception.ResourceInUseException;
 import co.com.portalup.service.QueryService;
+import co.com.portalup.security.DesignerAccessService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,15 @@ class QueryControllerTest {
     @MockBean
     private QueryService queryService;
 
+    // DesignerAccessConfig: las escrituras exigen un grupo del diseñador; aquí el usuario lo tiene.
+    @MockBean
+    private DesignerAccessService designerAccessService;
+
+    @BeforeEach
+    void allowDesigner() throws Exception {
+        when(designerAccessService.canDesign()).thenReturn(true);
+    }
+
     @Test
     void createReturns201WithLocationAndBody() throws Exception {
         when(queryService.create(any(CreateQueryRequest.class)))
@@ -62,6 +73,44 @@ class QueryControllerTest {
                 .andExpect(jsonPath("$.config").value(CONFIG))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.createdAt").value("2026-10-03T19:20:00"));
+    }
+
+    // Protección CSRF: la sesión es la cookie LTPA de WebSphere, que el navegador también enviaría desde otro sitio.
+    // Un formulario de otro sitio solo puede enviar POST con text/plain, form-urlencoded o multipart (con JSON el
+    // navegador pide un preflight de CORS, que en WebSphere no se permite): esos cuerpos deben rechazarse sin llegar
+    // al servicio.
+    @Test
+    void createRejectsNonJsonBodyWithoutCallingService() throws Exception {
+        mockMvc.perform(post(BASE_URL).contentType(MediaType.TEXT_PLAIN)
+                        .content(body("Consulta", CESQL, CONFIG, "ACTIVE")))
+                .andExpect(status().isUnsupportedMediaType());
+        mockMvc.perform(post(BASE_URL).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .content("name=Consulta"))
+                .andExpect(status().isUnsupportedMediaType());
+
+        verifyNoInteractions(queryService);
+    }
+
+    @Test
+    void writesFromUsersOutsideDesignerGroupsReturn403WithoutCallingService() throws Exception {
+        when(designerAccessService.canDesign()).thenReturn(false);
+
+        mockMvc.perform(post(BASE_URL).contentType(MediaType.APPLICATION_JSON)
+                        .content(body("Consulta", CESQL, CONFIG, "ACTIVE")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("El usuario no pertenece a un grupo con acceso al diseñador de consultas"));
+        mockMvc.perform(delete(BASE_URL + "/1"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(queryService);
+    }
+
+    @Test
+    void readsDoNotRequireDesignerGroup() throws Exception {
+        when(designerAccessService.canDesign()).thenReturn(false);
+        when(queryService.findAll(null)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_URL)).andExpect(status().isOk());
     }
 
     @Test

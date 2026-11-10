@@ -22,9 +22,11 @@ import co.com.portalup.entity.ProjectStatus;
 import co.com.portalup.exception.ProjectNotFoundException;
 import co.com.portalup.exception.ResourceInUseException;
 import co.com.portalup.service.ProjectService;
+import co.com.portalup.security.DesignerAccessService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,15 @@ class ProjectControllerTest {
 
     @MockBean
     private ProjectService projectService;
+
+    // DesignerAccessConfig: las escrituras exigen un grupo del diseñador; aquí el usuario lo tiene.
+    @MockBean
+    private DesignerAccessService designerAccessService;
+
+    @BeforeEach
+    void allowDesigner() throws Exception {
+        when(designerAccessService.canDesign()).thenReturn(true);
+    }
 
     @Test
     void createReturns201WithLocationAndBody() throws Exception {

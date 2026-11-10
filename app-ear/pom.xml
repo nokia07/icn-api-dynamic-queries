@@ -40,6 +40,13 @@
               <contextRoot>/icn-api-dynamic-queries</contextRoot>
             </webModule>
           </modules>
+          <!-- Rol de web.xml, declarado también en application.xml para asignarlo al desplegar
+               (src/main/application/META-INF/ibm-application-bnd.xml). -->
+          <security>
+            <security-role>
+              <role-name>DQUser</role-name>
+            </security-role>
+          </security>
         </configuration>
       </plugin>
     </plugins>

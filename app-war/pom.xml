@@ -90,6 +90,15 @@
       </exclusions>
     </dependency>
 
+    <!-- API de seguridad de WebSphere (WSSubject/WSCredential: grupos del usuario); la provee el servidor.
+         Igual que en Prote_ConsGral: debe estar instalada en el repositorio Maven local. -->
+    <dependency>
+      <groupId>com.ibm.websphere</groupId>
+      <artifactId>was-public</artifactId>
+      <version>9.0.0.8</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- En WebSphere el driver lo provee el datasource JNDI jdbc/GeneraConsDinaDS -->
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
