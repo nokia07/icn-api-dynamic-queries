@@ -63,6 +63,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
       <exclusions>
+        <!-- javax.transaction lo provee WebSphere: con PARENT_LAST una copia en el WAR provoca LinkageError -->
+        <exclusion>
+          <groupId>jakarta.transaction</groupId>
+          <artifactId>jakarta.transaction-api</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-logging</artifactId>
@@ -85,7 +90,7 @@
       </exclusions>
     </dependency>
 
-    <!-- En WebSphere el driver lo provee el datasource JNDI jdbc/icnDS -->
+    <!-- En WebSphere el driver lo provee el datasource JNDI jdbc/GeneraConsDinaDS -->
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc8</artifactId>

@@ -45,5 +45,5 @@ Smoke-test endpoint: `GET /api/v1/ping` (under WebSphere: `/icn-api-dynamic-quer
 - Plain layered structure under `co.com.portalup`: `controller` → `service` → `repository` (Spring Data JPA) → Oracle 19c, with `entity`, `dto` and `exception` packages. Controllers return DTOs, never entities.
 - `exception/GlobalExceptionHandler` is the single `@RestControllerAdvice`; it extends `ResponseEntityExceptionHandler` so every error (including Spring MVC's own) uses `dto/ErrorResponse`. Add new exception mappings there.
 - Logging uses commons-logging (`LogFactory`), since no SLF4J binding is bundled.
-- Datasource: `application.properties` uses JNDI `jdbc/icnDS` for every profile except `local`; `application-local.properties` connects to `localhost:1521/XEPDB1` and reads the password from `ICN_DB_PASSWORD`.
+- Datasource: `application.properties` uses JNDI `jdbc/GeneraConsDinaDS` for every profile except `local`; `application-local.properties` connects to `localhost:1521/XEPDB1` and reads the password from `ICN_DB_PASSWORD`.
 - `ddl-auto=none`: the schema is owned by the DBA, never by the app. Identity columns (`GENERATED ALWAYS AS IDENTITY`) map with `GenerationType.IDENTITY`; DB-defaulted columns like `SYSTIMESTAMP` use `insertable/updatable = false` plus `@Generated(GenerationTime.INSERT)`.
