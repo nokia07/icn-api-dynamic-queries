@@ -8,10 +8,10 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.Table;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "tbl_icn_queries")
@@ -32,7 +32,11 @@ public class QueryEntity {
     @Column(name = "qry_cesql", nullable = false, length = 4000)
     private String cesql;
 
-    @Lob
+    /**
+     * La columna es CLOB, pero se lee y escribe como texto (getString/setString) en lugar de con
+     * getClob: el driver de Oracle lo admite tanto para CLOB como para VARCHAR2.
+     */
+    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "qry_config", nullable = false)
     private String config;
 
