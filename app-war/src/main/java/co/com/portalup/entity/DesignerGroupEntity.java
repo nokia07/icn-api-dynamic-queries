@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * Grupo con acceso al diseñador de consultas (docs/db/tbl_icn_designer_groups.sql). Solo se lee: los registros los
+ * Grupo o usuario con acceso al diseñador de consultas (docs/db/tbl_icn_designer_groups.sql). Solo se lee: los registros los
  * administra el DBA.
  */
 @Entity
@@ -20,7 +20,7 @@ public class DesignerGroupEntity {
     @Column(name = "dgr_id", nullable = false, updatable = false)
     private Long id;
 
-    /** Nombre corto (CN) o DN del grupo; se compara sin distinguir mayúsculas. */
+    /** Nombre corto (CN/uid), nombre de inicio de sesión o DN del grupo o usuario; se compara sin distinguir mayúsculas. */
     @Column(name = "dgr_name", nullable = false, length = 512)
     private String name;
 
